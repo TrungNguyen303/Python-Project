@@ -5,10 +5,16 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 
 # Define ABC Analysis function
-def abc_analysis(data):
+def abc_analysis(orders, inventory):
     st.write("Running ABC Analysis...")
+    # Merge orders with inventory to get product names
+    orders = orders.merge(inventory, on="Product_ID")
+    
+    # Calculate Sales_Amount
+    orders["Sales_Amount"] = orders["Quantity"] * orders["Price"]
+    
     # Group by product and calculate total sales
-    product_sales = data.groupby('Product_Name')['Sales_Amount'].sum().sort_values(ascending=False)
+    product_sales = orders.groupby('Product_Name')['Sales_Amount'].sum().sort_values(ascending=False)
     total_sales = product_sales.sum()
     product_sales_percentage = (product_sales / total_sales).cumsum()
 
@@ -23,11 +29,14 @@ def abc_analysis(data):
     return abc_result
 
 # Define FRM Analysis function
-def frm_analysis(data):
+def frm_analysis(orders):
     st.write("Running FRM Analysis...")
+    # Calculate Sales_Amount
+    orders["Sales_Amount"] = orders["Quantity"] * orders["Price"]
+    
     # Group by customer and calculate metrics
-    frm_data = data.groupby('Customer_ID').agg({
-        'Order_Date': lambda x: (data['Order_Date'].max() - x.max()).days,  # Recency
+    frm_data = orders.groupby('Customer_ID').agg({
+        'Order_Date': lambda x: (orders['Order_Date'].max() - x.max()).days,  # Recency
         'Order_ID': 'count',  # Frequency
         'Sales_Amount': 'sum'  # Monetary
     }).rename(columns={'Order_Date': 'Recency', 'Order_ID': 'Frequency', 'Sales_Amount': 'Monetary'})
@@ -45,35 +54,37 @@ st.title("Coffee Point Data Analysis App")
 st.subheader("Analyze sales data to improve Coffee Point's operational efficiency.")
 
 # File upload
-uploaded_file = st.file_uploader("Upload your sales data file (CSV or Excel)", type=["csv", "xlsx"])
+uploaded_file = st.file_uploader("Upload your Coffee Point data file (Excel format)", type=["xlsx"])
 
 if uploaded_file:
-    # Load data
+    # Load data from Excel file
     try:
-        if uploaded_file.name.endswith('.csv'):
-            data = pd.read_csv(uploaded_file)
-        else:
-            data = pd.read_excel(uploaded_file)
+        data = pd.ExcelFile(uploaded_file)
+        orders = data.parse('Orders')
+        inventory = data.parse('Inventory')
+        customers = data.parse('Customers')
+        
         st.write("Data loaded successfully!")
-        st.write("Preview of the data:")
-        st.dataframe(data.head())
+        st.write("Preview of Orders data:")
+        st.dataframe(orders.head())
+        st.write("Preview of Inventory data:")
+        st.dataframe(inventory.head())
+        st.write("Preview of Customers data:")
+        st.dataframe(customers.head())
 
-        # Map dataset columns to expected names
-        data = data.rename(columns={
-            'Actual_Product_Column_Name': 'Product_Name',
-            'Actual_Sales_Column_Name': 'Sales_Amount',
-            'Actual_Customer_Column_Name': 'Customer_ID',
-            'Actual_OrderDate_Column_Name': 'Order_Date',
-            'Actual_OrderID_Column_Name': 'Order_ID'
-        })
+        # Ensure required columns are present in the datasets
+        required_orders_columns = ['Order_ID', 'Order_Date', 'Customer_ID', 'Product_ID', 'Quantity', 'Price']
+        required_inventory_columns = ['Product_ID', 'Product_Name', 'Category', 'Stock']
+        required_customers_columns = ['Customer_ID', 'Last_Purchase_Date', 'Total_Spent']
+        
+        if (all(col in orders.columns for col in required_orders_columns) and
+            all(col in inventory.columns for col in required_inventory_columns) and
+            all(col in customers.columns for col in required_customers_columns)):
 
-        # Ensure required columns are present
-        required_columns = ['Product_Name', 'Sales_Amount', 'Customer_ID', 'Order_Date', 'Order_ID']
-        if all(col in data.columns for col in required_columns):
             # ABC Analysis
             st.subheader("ABC Analysis")
             if st.button("Run ABC Analysis"):
-                abc_results = abc_analysis(data)
+                abc_results = abc_analysis(orders, inventory)
                 st.write("ABC Analysis Results:")
                 st.dataframe(abc_results)
                 fig = px.bar(abc_results, x='Product', y='Sales', color='Category', title="ABC Analysis")
@@ -82,19 +93,19 @@ if uploaded_file:
             # FRM Analysis
             st.subheader("FRM Analysis")
             if st.button("Run FRM Analysis"):
-                frm_results = frm_analysis(data)
+                frm_results = frm_analysis(orders)
                 st.write("FRM Analysis Results:")
                 st.dataframe(frm_results)
                 fig = px.scatter(frm_results, x='Recency', y='Monetary', size='Frequency', color='FRM_Score',
                                  title="FRM Customer Segmentation")
                 st.plotly_chart(fig)
-
+        
         else:
-            st.error(f"Missing required columns: {set(required_columns) - set(data.columns)}")
+            st.error("One or more required columns are missing in the dataset.")
     except Exception as e:
         st.error(f"Error loading file: {e}")
 else:
-    st.info("Please upload a CSV or Excel file to proceed.")
+    st.info("Please upload a valid Excel file to proceed.")
 
 # Automation Section
 st.subheader("Automate Reports")
