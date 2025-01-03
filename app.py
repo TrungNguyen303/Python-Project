@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -14,7 +8,7 @@ import plotly.express as px
 def abc_analysis(data):
     st.write("Running ABC Analysis...")
     # Group by product and calculate total sales
-    product_sales = data.groupby('product')['sales'].sum().sort_values(ascending=False)
+    product_sales = data.groupby('Product_Name')['Sales_Amount'].sum().sort_values(ascending=False)
     total_sales = product_sales.sum()
     product_sales_percentage = (product_sales / total_sales).cumsum()
 
@@ -32,11 +26,11 @@ def abc_analysis(data):
 def frm_analysis(data):
     st.write("Running FRM Analysis...")
     # Group by customer and calculate metrics
-    frm_data = data.groupby('customer_id').agg({
-        'order_date': lambda x: (data['order_date'].max() - x.max()).days,  # Recency
-        'order_id': 'count',  # Frequency
-        'sales': 'sum'  # Monetary
-    }).rename(columns={'order_date': 'Recency', 'order_id': 'Frequency', 'sales': 'Monetary'})
+    frm_data = data.groupby('Customer_ID').agg({
+        'Order_Date': lambda x: (data['Order_Date'].max() - x.max()).days,  # Recency
+        'Order_ID': 'count',  # Frequency
+        'Sales_Amount': 'sum'  # Monetary
+    }).rename(columns={'Order_Date': 'Recency', 'Order_ID': 'Frequency', 'Sales_Amount': 'Monetary'})
 
     # Segment customers using quantiles
     frm_data['Recency_Score'] = pd.qcut(frm_data['Recency'], q=4, labels=[4, 3, 2, 1])
@@ -64,8 +58,17 @@ if uploaded_file:
         st.write("Preview of the data:")
         st.dataframe(data.head())
 
+        # Map dataset columns to expected names
+        data = data.rename(columns={
+            'Actual_Product_Column_Name': 'Product_Name',
+            'Actual_Sales_Column_Name': 'Sales_Amount',
+            'Actual_Customer_Column_Name': 'Customer_ID',
+            'Actual_OrderDate_Column_Name': 'Order_Date',
+            'Actual_OrderID_Column_Name': 'Order_ID'
+        })
+
         # Ensure required columns are present
-        required_columns = ['product', 'sales', 'customer_id', 'order_date', 'order_id']
+        required_columns = ['Product_Name', 'Sales_Amount', 'Customer_ID', 'Order_Date', 'Order_ID']
         if all(col in data.columns for col in required_columns):
             # ABC Analysis
             st.subheader("ABC Analysis")
@@ -98,10 +101,3 @@ st.subheader("Automate Reports")
 if st.button("Generate Reports"):
     st.write("Report generated successfully!")
     # Add logic to save reports to a file or email them.
-
-
-# In[ ]:
-
-
-
-
