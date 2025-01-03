@@ -93,15 +93,27 @@ def sales_trends(orders):
 # Define function to visualize inventory status
 def inventory_status(inventory):
     st.subheader("Inventory Status")
-    # Bar chart for inventory levels
-    fig = px.bar(
+
+    # Product-level inventory chart
+    fig_product = px.bar(
         inventory,
         x="Product_Name",
         y="Stock",
-        title="Inventory Levels",
+        title="Inventory Levels by Product",
         labels={"Stock": "Inventory", "Product_Name": "Product"},
     )
-    st.plotly_chart(fig)
+    st.plotly_chart(fig_product)
+
+    # Category-level inventory chart
+    category_inventory = inventory.groupby("Category")["Stock"].sum().reset_index()
+    fig_category = px.bar(
+        category_inventory,
+        x="Category",
+        y="Stock",
+        title="Inventory Levels by Category",
+        labels={"Stock": "Inventory", "Category": "Product Category"},
+    )
+    st.plotly_chart(fig_category)
 
 
 # Streamlit App
@@ -111,59 +123,68 @@ st.title("Coffee Point Data Analysis App")
 st.sidebar.title("Navigation")
 page = st.sidebar.selectbox(
     "Choose a page:",
-    ["Home", "ABC Analysis", "FRM Analysis", "Sales Trends", "Inventory Status", "Customer Behavior"]
+    ["Home", "ABC Analysis", "FRM Analysis", "Sales Trends", "Inventory Status", "Customer Behavior", "Automate"]
 )
 
-# File upload (applicable to all pages)
+# File upload for primary dataset
 uploaded_file = st.file_uploader("Upload your Coffee Point data file (Excel format)", type=["xlsx"])
 
 if uploaded_file:
-    # Load data from Excel file
-    try:
-        data = pd.ExcelFile(uploaded_file)
-        orders = data.parse("Orders")
-        inventory = data.parse("Inventory")
-        customers = data.parse("Customers")
+    # Load primary data
+    data = pd.ExcelFile(uploaded_file)
+    orders = data.parse("Orders")
+    inventory = data.parse("Inventory")
+    customers = data.parse("Customers")
 
-        # Ensure required columns are present in the datasets
-        required_orders_columns = ["Order_ID", "Order_Date", "Customer_ID", "Product_ID", "Quantity", "Price"]
-        required_inventory_columns = ["Product_ID", "Product_Name", "Category", "Stock"]
-        required_customers_columns = ["Customer_ID", "Last_Purchase_Date", "Total_Spent"]
+    # Navigation Logic
+    if page == "Home":
+        st.write("Welcome to the Coffee Point Data Analysis App!")
+        st.write("Preview of Orders data:")
+        st.dataframe(orders.head())
+        st.write("Preview of Inventory data:")
+        st.dataframe(inventory.head())
+        st.write("Preview of Customers data:")
+        st.dataframe(customers.head())
 
-        if (
-            all(col in orders.columns for col in required_orders_columns)
-            and all(col in inventory.columns for col in required_inventory_columns)
-            and all(col in customers.columns for col in required_customers_columns)
-        ):
-            # Navigation Logic
-            if page == "Home":
-                st.write("Welcome to the Coffee Point Data Analysis App!")
-                st.write("Upload a valid Excel file to begin analysis.")
-                st.write("Preview of Orders data:")
-                st.dataframe(orders.head())
-                st.write("Preview of Inventory data:")
-                st.dataframe(inventory.head())
-                st.write("Preview of Customers data:")
-                st.dataframe(customers.head())
+    elif page == "ABC Analysis":
+        abc_results = abc_analysis(orders, inventory)
+        st.write("ABC Analysis Results:")
+        st.dataframe(abc_results)
 
-            elif page == "ABC Analysis":
-                abc_analysis(orders, inventory)
+    elif page == "FRM Analysis":
+        frm_results = frm_analysis(orders)
+        st.write("FRM Analysis Results:")
+        st.dataframe(frm_results)
 
-            elif page == "FRM Analysis":
-                frm_analysis(orders)
+    elif page == "Sales Trends":
+        orders = calculate_sales_amount(orders)
+        daily_sales = orders.groupby("Order_Date")["Sales_Amount"].sum().reset_index()
+        fig = px.line(daily_sales, x="Order_Date", y="Sales_Amount", title="Daily Sales Trends")
+        st.plotly_chart(fig)
 
-            elif page == "Sales Trends":
-                sales_trends(orders)
+    elif page == "Inventory Status":
+        inventory_status(inventory)
 
-            elif page == "Inventory Status":
-                inventory_status(inventory)
+    elif page == "Customer Behavior":
+        fig = px.bar(customers, x="Customer_ID", y="Total_Spent", title="Total Spending per Customer")
+        st.plotly_chart(fig)
 
-            elif page == "Customer Behavior":
-                customer_behavior(customers)
+    elif page == "Automate":
+        st.subheader("Automate Data Updates and Reports")
 
-        else:
-            st.error("One or more required columns are missing in the dataset.")
-    except Exception as e:
-        st.error(f"Error loading file: {e}")
+        # Upload new orders data
+        new_orders_file = st.file_uploader("Upload new orders data (Excel format)", type=["xlsx"])
+        if new_orders_file:
+            new_orders = pd.read_excel(new_orders_file)
+            orders = update_sales_data(orders, new_orders)
+            st.write("Updated Orders Data:")
+            st.dataframe(orders.head())
+
+        # Generate reports
+        if st.button("Generate Report"):
+            abc_results = abc_analysis(orders, inventory)
+            frm_results = frm_analysis(orders)
+            daily_sales = orders.groupby("Order_Date")["Sales_Amount"].sum().reset_index()
+            generate_reports(abc_results, frm_results, daily_sales)
 else:
     st.info("Please upload a valid Excel file to proceed.")
