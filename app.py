@@ -91,21 +91,15 @@ def sales_trends(orders):
 
 
 # Define function to visualize inventory status
-def inventory_status(inventory, orders):
+def inventory_status(inventory):
     st.subheader("Inventory Status")
-    # Merge orders with inventory to calculate sales per product
-    orders = calculate_sales_amount(orders)
-    inventory_sales = orders.groupby("Product_ID")["Sales_Amount"].sum().reset_index()
-    inventory_status = inventory.merge(inventory_sales, on="Product_ID", how="left").fillna(0)
-    inventory_status["Remaining_Stock"] = inventory_status["Stock"] - inventory_status["Sales_Amount"]
-
-    # Bar chart for inventory vs sales
+    # Bar chart for inventory levels
     fig = px.bar(
-        inventory_status,
+        inventory,
         x="Product_Name",
-        y=["Stock", "Remaining_Stock"],
-        title="Inventory vs Remaining Stock",
-        labels={"value": "Count", "variable": "Status"},
+        y="Stock",
+        title="Inventory Levels",
+        labels={"Stock": "Inventory", "Product_Name": "Product"},
     )
     st.plotly_chart(fig)
 
