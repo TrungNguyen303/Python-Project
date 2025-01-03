@@ -65,6 +65,19 @@ def frm_analysis(orders):
     st.plotly_chart(fig)
 
 
+# Define Customer Behavior Analysis
+def customer_behavior(customers):
+    st.subheader("Customer Behavior Analysis")
+    # Visualize total spending
+    fig = px.bar(customers, x="Customer_ID", y="Total_Spent", title="Total Spending per Customer")
+    st.plotly_chart(fig)
+
+    # Recent Purchase Dates
+    recent_purchases = customers.sort_values("Last_Purchase_Date", ascending=False)
+    st.write("Recent Purchase Dates:")
+    st.dataframe(recent_purchases)
+
+
 # Define function to visualize sales trends
 def sales_trends(orders):
     st.subheader("Sales Trends")
@@ -104,7 +117,7 @@ st.title("Coffee Point Data Analysis App")
 st.sidebar.title("Navigation")
 page = st.sidebar.selectbox(
     "Choose a page:",
-    ["Home", "ABC Analysis", "FRM Analysis", "Sales Trends", "Inventory Status"]
+    ["Home", "ABC Analysis", "FRM Analysis", "Sales Trends", "Inventory Status", "Customer Behavior"]
 )
 
 # File upload (applicable to all pages)
@@ -150,6 +163,9 @@ if uploaded_file:
 
             elif page == "Inventory Status":
                 inventory_status(inventory, orders)
+
+            elif page == "Customer Behavior":
+                customer_behavior(customers)
 
         else:
             st.error("One or more required columns are missing in the dataset.")
