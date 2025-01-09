@@ -8,9 +8,9 @@ def calculate_sales_amount(orders):
     orders["Sales_Amount"] = orders["Quantity"] * orders["Price"]
     return orders
 
-# Define ABC Analysis function with explanation
+# Define ABC Analysis function
 def abc_analysis(orders, inventory):
-    st.subheader("ABC Analysis")
+    st.subheader("ABC Analysis: Product Classification")
     # Merge orders with inventory to get product names
     orders = orders.merge(inventory, on="Product_ID")
 
@@ -39,24 +39,17 @@ def abc_analysis(orders, inventory):
     fig = px.bar(abc_result, x='Product', y='Sales', color='Category', title="ABC Analysis")
     st.plotly_chart(fig)
 
-    # Explanation of the ABC classification
+    # Explanation and Recommendations
     st.markdown("""
-        ### What is ABC Analysis?
-        ABC Analysis is a method used to categorize inventory or products based on their importance, often determined by sales contribution. It helps businesses prioritize resources for managing inventory and making strategic decisions.
-
-        - **Category A (High Priority)**: These products account for the top 70% of total sales. They are high-value items and require close monitoring to ensure availability and minimize stockouts.
-        - **Category B (Medium Priority)**: These products contribute to the next 20% of total sales. They are important but not as critical as Category A items.
-        - **Category C (Low Priority)**: These products contribute to the remaining 10% of total sales. They are low-value items and require minimal resources for management.
-
-        ### How to use this analysis:
-        - Focus on **Category A** items to optimize sales and profitability. Ensure sufficient stock levels and prioritize these items in marketing and sales strategies.
-        - Manage **Category B** items to maintain a balance between availability and cost-efficiency.
-        - Minimize effort and resources spent on **Category C** items while avoiding overstocking.
+        ### Recommendations:
+        - **Category A**: High-priority products. Ensure sufficient stock and focus on marketing these products.
+        - **Category B**: Medium-priority products. Monitor stock and consider targeted promotions.
+        - **Category C**: Low-priority products. Minimize investment and evaluate their profitability.
     """)
 
 # Define FRM Analysis function
 def frm_analysis(orders):
-    st.subheader("FRM Analysis")
+    st.subheader("FRM Analysis: Customer Behavior")
     # Calculate Sales_Amount
     orders = calculate_sales_amount(orders)
 
@@ -75,9 +68,20 @@ def frm_analysis(orders):
 
     st.write("FRM Analysis Results:")
     st.dataframe(frm_data)
+
+    # Plotting FRM results
     fig = px.scatter(frm_data, x='Recency', y='Monetary', size='Frequency', color='FRM_Score',
                      title="FRM Customer Segmentation")
     st.plotly_chart(fig)
+
+    # Explanation and Recommendations
+    st.markdown("""
+        ### Recommendations:
+        - **High FRM Scores**: Focus on loyal, high-value customers. Offer rewards and maintain strong engagement.
+        - **Low Recency Scores**: Re-engage customers who haven’t purchased recently with targeted campaigns.
+        - **Low Frequency Scores**: Encourage more frequent purchases with loyalty programs or discounts.
+        - **Low Monetary Scores**: Upsell higher-value products to these customers.
+    """)
 
 # Define Customer Behavior Analysis
 def customer_behavior(customers):
@@ -134,7 +138,7 @@ st.title("Coffee Point Data Analysis App")
 st.sidebar.title("Navigation")
 page = st.sidebar.selectbox(
     "Choose a page:",
-    ["Home", "ABC Analysis", "FRM Analysis", "Sales Trends", "Inventory Status", "Customer Behavior", "Automate"]
+    ["Home", "ABC Analysis", "FRM Analysis", "Sales Trends", "Inventory Status", "Customer Behavior"]
 )
 
 # File upload for primary dataset
@@ -172,22 +176,5 @@ if uploaded_file:
     elif page == "Customer Behavior":
         customer_behavior(customers)
 
-    elif page == "Automate":
-        st.subheader("Automate Data Updates and Reports")
-
-        # Upload new orders data
-        new_orders_file = st.file_uploader("Upload new orders data (Excel format)", type=["xlsx"])
-        if new_orders_file:
-            new_orders = pd.read_excel(new_orders_file)
-            orders = update_sales_data(orders, new_orders)
-            st.write("Updated Orders Data:")
-            st.dataframe(orders.head())
-
-        # Generate reports
-        if st.button("Generate Report"):
-            abc_results = abc_analysis(orders, inventory)
-            frm_results = frm_analysis(orders)
-            daily_sales = orders.groupby("Order_Date")["Sales_Amount"].sum().reset_index()
-            generate_reports(abc_results, frm_results, daily_sales)
 else:
     st.info("Please upload a valid Excel file to proceed.")
