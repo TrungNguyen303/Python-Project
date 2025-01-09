@@ -41,10 +41,30 @@ def abc_analysis(orders, inventory):
 
     # Explanation and Recommendations
     st.markdown("""
-        ### Recommendations:
-        - **Category A**: High-priority products. Ensure sufficient stock and focus on marketing these products.
-        - **Category B**: Medium-priority products. Monitor stock and consider targeted promotions.
-        - **Category C**: Low-priority products. Minimize investment and evaluate their profitability.
+        ### Criteria for ABC Classification:
+        - **Category A**: Top 70% of total sales (most critical products).
+        - **Category B**: Next 20% of total sales (important but less critical).
+        - **Category C**: Bottom 10% of total sales (least critical products).
+
+        ### Conclusions and Recommendations:
+        - **Category A (High Priority)**:
+          - **Criteria**: These products contribute to 70% of total sales.
+          - **Recommendations**:
+            - Ensure optimal stock levels to avoid stockouts.
+            - Prioritize these products in marketing campaigns and sales strategies.
+            - Monitor demand trends closely to ensure availability.
+        - **Category B (Medium Priority)**:
+          - **Criteria**: These products contribute to the next 20% of total sales.
+          - **Recommendations**:
+            - Maintain moderate stock levels, balancing availability and cost.
+            - Explore opportunities to increase sales (e.g., bundling or promotions).
+            - Keep monitoring performance and move high-performing products to Category A if possible.
+        - **Category C (Low Priority)**:
+          - **Criteria**: These products contribute to the bottom 10% of total sales.
+          - **Recommendations**:
+            - Minimize inventory and reduce investment in these products.
+            - Consider discontinuing or replacing low-performing items with better alternatives.
+            - Focus on streamlining the product portfolio to improve efficiency.
     """)
 
 # Define FRM Analysis function with segmentation, pie chart, and benchmarks
