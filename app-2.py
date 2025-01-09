@@ -158,16 +158,29 @@ def customer_behavior(customers):
     st.write("Recent Purchase Dates:")
     st.dataframe(recent_purchases)
 
-# Define function to visualize sales trends
+# Define function to visualize sales trends (daily and weekly)
 def sales_trends(orders):
     st.subheader("Sales Trends")
     # Calculate daily sales
     orders = calculate_sales_amount(orders)
     daily_sales = orders.groupby("Order_Date")["Sales_Amount"].sum().reset_index()
+    daily_sales.columns = ["Date", "Daily_Sales"]
 
-    # Line chart for sales trends
-    fig = px.line(daily_sales, x="Order_Date", y="Sales_Amount", title="Daily Sales Trends")
-    st.plotly_chart(fig)
+    # Calculate weekly sales
+    orders["Week"] = orders["Order_Date"].dt.to_period("W").apply(lambda r: r.start_time)
+    weekly_sales = orders.groupby("Week")["Sales_Amount"].sum().reset_index()
+    weekly_sales.columns = ["Week", "Weekly_Sales"]
+
+    # Daily Sales Line Chart
+    st.markdown("### Daily Sales Trends")
+    fig_daily = px.line(daily_sales, x="Date", y="Daily_Sales", title="Daily Sales Trends", labels={"Date": "Date", "Daily_Sales": "Sales Amount"})
+    st.plotly_chart(fig_daily)
+
+    # Weekly Sales Line Chart
+    st.markdown("### Weekly Sales Trends")
+    fig_weekly = px.line(weekly_sales, x="Week", y="Weekly_Sales", title="Weekly Sales Trends", labels={"Week": "Week", "Weekly_Sales": "Sales Amount"})
+    st.plotly_chart(fig_weekly)
+
 
 # Define function to visualize inventory status
 def inventory_status(inventory):
