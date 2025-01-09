@@ -3,14 +3,12 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 
-
 # Helper function to calculate Sales_Amount
 def calculate_sales_amount(orders):
     orders["Sales_Amount"] = orders["Quantity"] * orders["Price"]
     return orders
 
-
-# Define ABC Analysis function
+# Define ABC Analysis function with explanation
 def abc_analysis(orders, inventory):
     st.subheader("ABC Analysis")
     # Merge orders with inventory to get product names
@@ -33,11 +31,28 @@ def abc_analysis(orders, inventory):
         'Category': abc_classification
     })
 
+    # Display results
     st.write("ABC Analysis Results:")
     st.dataframe(abc_result)
+
+    # Plotting the results
     fig = px.bar(abc_result, x='Product', y='Sales', color='Category', title="ABC Analysis")
     st.plotly_chart(fig)
 
+    # Explanation of the ABC classification
+    st.markdown("""
+        ### What is ABC Analysis?
+        ABC Analysis is a method used to categorize inventory or products based on their importance, often determined by sales contribution. It helps businesses prioritize resources for managing inventory and making strategic decisions.
+
+        - **Category A (High Priority)**: These products account for the top 70% of total sales. They are high-value items and require close monitoring to ensure availability and minimize stockouts.
+        - **Category B (Medium Priority)**: These products contribute to the next 20% of total sales. They are important but not as critical as Category A items.
+        - **Category C (Low Priority)**: These products contribute to the remaining 10% of total sales. They are low-value items and require minimal resources for management.
+
+        ### How to use this analysis:
+        - Focus on **Category A** items to optimize sales and profitability. Ensure sufficient stock levels and prioritize these items in marketing and sales strategies.
+        - Manage **Category B** items to maintain a balance between availability and cost-efficiency.
+        - Minimize effort and resources spent on **Category C** items while avoiding overstocking.
+    """)
 
 # Define FRM Analysis function
 def frm_analysis(orders):
@@ -64,7 +79,6 @@ def frm_analysis(orders):
                      title="FRM Customer Segmentation")
     st.plotly_chart(fig)
 
-
 # Define Customer Behavior Analysis
 def customer_behavior(customers):
     st.subheader("Customer Behavior Analysis")
@@ -77,7 +91,6 @@ def customer_behavior(customers):
     st.write("Recent Purchase Dates:")
     st.dataframe(recent_purchases)
 
-
 # Define function to visualize sales trends
 def sales_trends(orders):
     st.subheader("Sales Trends")
@@ -88,7 +101,6 @@ def sales_trends(orders):
     # Line chart for sales trends
     fig = px.line(daily_sales, x="Order_Date", y="Sales_Amount", title="Daily Sales Trends")
     st.plotly_chart(fig)
-
 
 # Define function to visualize inventory status
 def inventory_status(inventory):
@@ -114,7 +126,6 @@ def inventory_status(inventory):
         labels={"Stock": "Inventory", "Category": "Product Category"},
     )
     st.plotly_chart(fig_category)
-
 
 # Streamlit App
 st.title("Coffee Point Data Analysis App")
@@ -147,27 +158,19 @@ if uploaded_file:
         st.dataframe(customers.head())
 
     elif page == "ABC Analysis":
-        abc_results = abc_analysis(orders, inventory)
-        st.write("ABC Analysis Results:")
-        st.dataframe(abc_results)
+        abc_analysis(orders, inventory)
 
     elif page == "FRM Analysis":
-        frm_results = frm_analysis(orders)
-        st.write("FRM Analysis Results:")
-        st.dataframe(frm_results)
+        frm_analysis(orders)
 
     elif page == "Sales Trends":
-        orders = calculate_sales_amount(orders)
-        daily_sales = orders.groupby("Order_Date")["Sales_Amount"].sum().reset_index()
-        fig = px.line(daily_sales, x="Order_Date", y="Sales_Amount", title="Daily Sales Trends")
-        st.plotly_chart(fig)
+        sales_trends(orders)
 
     elif page == "Inventory Status":
         inventory_status(inventory)
 
     elif page == "Customer Behavior":
-        fig = px.bar(customers, x="Customer_ID", y="Total_Spent", title="Total Spending per Customer")
-        st.plotly_chart(fig)
+        customer_behavior(customers)
 
     elif page == "Automate":
         st.subheader("Automate Data Updates and Reports")
