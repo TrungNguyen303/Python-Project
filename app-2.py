@@ -47,7 +47,7 @@ def abc_analysis(orders, inventory):
         - **Category C**: Low-priority products. Minimize investment and evaluate their profitability.
     """)
 
-# Define FRM Analysis function with segmentation
+# Define FRM Analysis function with segmentation, pie chart, and benchmarks
 def frm_analysis(orders):
     st.subheader("FRM Analysis: Customer Behavior")
     # Calculate Sales_Amount
@@ -72,23 +72,59 @@ def frm_analysis(orders):
     st.write("FRM Analysis Results:")
     st.dataframe(frm_data)
 
-    # Plotting FRM results
+    # Plotting FRM results: Scatter Plot
     fig = px.scatter(frm_data, x='Recency', y='Monetary', size='Frequency', color='Segment',
                      title="FRM Customer Segmentation",
                      labels={'Recency': 'Recency (Days)', 'Monetary': 'Monetary Value', 'Frequency': 'Order Frequency'})
     st.plotly_chart(fig)
 
-    # Conclusions and Recommendations
-    st.markdown("""
-        ### Conclusions and Recommendations:
-        - **Champions**: These are your best customers. They purchase frequently, recently, and spend the most. Reward them with VIP programs and exclusive offers to retain them.
-        - **Loyal Customers**: These customers purchase regularly but might not have high monetary value. Encourage them to try premium products or increase their spending.
-        - **Potential Loyalists**: These are relatively new customers with recent purchases. Nurture them with tailored discounts or loyalty programs to turn them into Champions.
-        - **Need Attention**: These customers haven't purchased recently. Re-engage them with personalized promotions or reminders.
-        - **At Risk**: These customers are at risk of churning. Identify their previous preferences and target them with reactivation campaigns.
-        - **Lost Customers**: These customers haven’t purchased in a long time. Evaluate if it's worth re-engaging or focus on acquiring new customers.
-    """)
+    # Adding a Pie Chart for Segment Distribution
+    segment_counts = frm_data['Segment'].value_counts().reset_index()
+    segment_counts.columns = ['Segment', 'Count']
+    fig_pie = px.pie(segment_counts, values='Count', names='Segment', title='Customer Segment Distribution')
+    st.plotly_chart(fig_pie)
 
+    # Conclusions and Recommendations with Benchmarks
+    st.markdown("""
+        ### Conclusions and Recommendations with Benchmarks:
+
+        - **Champions** (Recency: 4, Frequency: 3-4, Monetary: 3-4):
+          - These are your most valuable customers who purchase frequently, recently, and spend the most.
+          - **Recommendations**:
+            - Reward them with VIP programs, exclusive discounts, and personalized offers.
+            - Engage them further to encourage advocacy and word-of-mouth referrals.
+
+        - **Loyal Customers** (Recency: 3-4, Frequency: 3-4, Monetary: 2-3):
+          - These customers are regular buyers but may not spend as much as Champions.
+          - **Recommendations**:
+            - Promote cross-sell and upsell opportunities to increase their spending.
+            - Keep them engaged with loyalty rewards and updates on new products.
+
+        - **Potential Loyalists** (Recency: 3-4, Frequency: 2-3, Monetary: 2-3):
+          - These are relatively new customers who show potential to become loyal.
+          - **Recommendations**:
+            - Nurture them with targeted discounts, welcome offers, or loyalty programs.
+            - Monitor their purchasing behavior to transition them into Loyal Customers or Champions.
+
+        - **Need Attention** (Recency: 2, Frequency: 2-3, Monetary: 1-2):
+          - These customers haven't purchased recently and are at risk of disengaging.
+          - **Recommendations**:
+            - Re-engage them with personalized offers or reminders.
+            - Address any issues they might have faced during previous purchases.
+
+        - **At Risk** (Recency: 1, Frequency: 2-3, Monetary: 1-2):
+          - These customers have low recent activity and could be close to churning.
+          - **Recommendations**:
+            - Use win-back campaigns, such as discounts or reactivation emails.
+            - Offer incentives to bring them back to the purchasing cycle.
+
+        - **Lost Customers** (Recency: 1, Frequency: 1-2, Monetary: 1-2):
+          - These customers haven't purchased in a long time and may no longer be active.
+          - **Recommendations**:
+            - Evaluate if it's worth re-engaging them or focus resources on acquiring new customers.
+            - If attempting re-engagement, target them with significant offers or new product launches.
+    """)
+    
 # Helper function to classify customer segments
 def classify_customer_segment(frm_score):
     """Classify customers based on FRM score."""
