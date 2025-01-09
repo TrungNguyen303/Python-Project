@@ -158,7 +158,7 @@ def customer_behavior(customers):
     st.write("Recent Purchase Dates:")
     st.dataframe(recent_purchases)
 
-# Define function to visualize sales trends (daily and weekly)
+# Define function to visualize sales trends (daily and weekly with week numbers)
 def sales_trends(orders):
     st.subheader("Sales Trends")
     # Calculate daily sales
@@ -167,9 +167,11 @@ def sales_trends(orders):
     daily_sales.columns = ["Date", "Daily_Sales"]
 
     # Calculate weekly sales
-    orders["Week"] = orders["Order_Date"].dt.to_period("W").apply(lambda r: r.start_time)
-    weekly_sales = orders.groupby("Week")["Sales_Amount"].sum().reset_index()
-    weekly_sales.columns = ["Week", "Weekly_Sales"]
+    orders["Week_Number"] = orders["Order_Date"].dt.isocalendar().week
+    orders["Year"] = orders["Order_Date"].dt.year
+    weekly_sales = orders.groupby(["Year", "Week_Number"])["Sales_Amount"].sum().reset_index()
+    weekly_sales["Week"] = "Year " + weekly_sales["Year"].astype(str) + " - Week " + weekly_sales["Week_Number"].astype(str)
+    weekly_sales.columns = ["Year", "Week_Number", "Weekly_Sales", "Week"]
 
     # Daily Sales Line Chart
     st.markdown("### Daily Sales Trends")
@@ -178,7 +180,7 @@ def sales_trends(orders):
 
     # Weekly Sales Line Chart
     st.markdown("### Weekly Sales Trends")
-    fig_weekly = px.line(weekly_sales, x="Week", y="Weekly_Sales", title="Weekly Sales Trends", labels={"Week": "Week", "Weekly_Sales": "Sales Amount"})
+    fig_weekly = px.line(weekly_sales, x="Week", y="Weekly_Sales", title="Weekly Sales Trends", labels={"Week": "Week Number", "Weekly_Sales": "Sales Amount"})
     st.plotly_chart(fig_weekly)
 
 
