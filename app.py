@@ -57,7 +57,7 @@ def abc_analysis(orders, inventory):
           - **Criteria**: These products contribute to the next 20% of total sales.
           - **Recommendations**:
             - Maintain moderate stock levels, balancing availability and cost.
-            - Explore opportunities to increase sales (e.g., bundling or promotions).
+            - Explore opportunities to increase sales.
             - Keep monitoring performance and move high-performing products to Category A if possible.
         - **Category C (Low Priority)**:
           - **Criteria**: These products contribute to the bottom 10% of total sales.
@@ -108,14 +108,14 @@ def frm_analysis(orders):
     st.markdown("""
         ### Conclusions and Recommendations with Benchmarks:
 
-        - **Champions** (Recency: 4, Frequency: 3-4, Monetary: 3-4):
-          - These are your most valuable customers who purchase frequently, recently, and spend the most.
+        - **VIP** (Recency: 4, Frequency: 3-4, Monetary: 3-4):
+          - These are most valuable customers who purchase frequently, recently, and spend the most.
           - **Recommendations**:
             - Reward them with VIP programs, exclusive discounts, and personalized offers.
             - Engage them further to encourage advocacy and word-of-mouth referrals.
 
         - **Loyal Customers** (Recency: 3-4, Frequency: 3-4, Monetary: 2-3):
-          - These customers are regular buyers but may not spend as much as Champions.
+          - These customers are regular buyers but may not spend as much as VIPs.
           - **Recommendations**:
             - Promote cross-sell and upsell opportunities to increase their spending.
             - Keep them engaged with loyalty rewards and updates on new products.
@@ -124,7 +124,7 @@ def frm_analysis(orders):
           - These are relatively new customers who show potential to become loyal.
           - **Recommendations**:
             - Nurture them with targeted discounts, welcome offers, or loyalty programs.
-            - Monitor their purchasing behavior to transition them into Loyal Customers or Champions.
+            - Monitor their purchasing behavior to transition them into Loyal Customers or VIPs.
 
         - **Need Attention** (Recency: 2, Frequency: 2-3, Monetary: 1-2):
           - These customers haven't purchased recently and are at risk of disengaging.
@@ -153,7 +153,7 @@ def classify_customer_segment(frm_score):
     monetary = int(frm_score[2])
 
     if recency == 4 and frequency >= 3 and monetary >= 3:
-        return "Champions"
+        return "VIPs"
     elif recency >= 3 and frequency >= 3:
         return "Loyal Customers"
     elif recency >= 3 and frequency >= 2:
